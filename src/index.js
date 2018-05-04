@@ -1,5 +1,3 @@
-import { SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER } from "constants";
-
 const tileSize = [256, 256];
 
 class OSM {
@@ -64,8 +62,8 @@ class OSM {
                 const zoom = self.config.zoom;
                 const mercator = self.lonlat2Mercator(self.config.center, zoom);
                 const mercatorOffset = {
-                    x: mercator.x - dragOffset.x / 255,
-                    y: mercator.y - dragOffset.y / 255
+                    x: mercator.x - dragOffset.x / tileSize[0],
+                    y: mercator.y - dragOffset.y / tileSize[1]
                 };
                 self.config.center = self.mercator2Lonlat(mercatorOffset, zoom);
                 console.log('center:', self.config.center);
@@ -76,20 +74,20 @@ class OSM {
     }
 
     lonlat2Mercator(lonlat, zoom) {
-        const lambdaY = lon => Math.log(Math.tan((90 + lon) * Math.PI / 360));
+        const lambdaY = lat => Math.log(Math.tan((90 + lat) * Math.PI / 360));
         return {
-            x: (180 + lonlat.lat) / 360 * Math.pow(2, zoom),
-            y: (lambdaY(85.05112) - lambdaY(lonlat.lon)) / (lambdaY(85.05112) * 2 / Math.pow(2, zoom))
+            x: (180 + lonlat.lon) / 360 * Math.pow(2, zoom),
+            y: (lambdaY(85.05112) - lambdaY(lonlat.lat)) / (lambdaY(85.05112) * 2 / Math.pow(2, zoom))
         }
     }
 
     mercator2Lonlat(mercator, zoom) {
-        const lambdaLon = y => Math.atan(Math.exp(y)) * 360 / Math.PI - 90;
-        const lambdaY = lon => Math.log(Math.tan((90 + lon) * Math.PI / 360));
+        const lambdaLat = y => Math.atan(Math.exp(y)) * 360 / Math.PI - 90;
+        const lambdaY = lat => Math.log(Math.tan((90 + lat) * Math.PI / 360));
         const lambdaY85 = lambdaY(85.05112);
         return {
-            lat: (mercator.x / Math.pow(2, zoom) * 360) - 180,
-            lon: lambdaLon(lambdaY85 - mercator.y * lambdaY85 * 2/ Math.pow(2, zoom))
+            lon: (mercator.x / Math.pow(2, zoom) * 360) - 180,
+            lat: lambdaLat(lambdaY85 - mercator.y * lambdaY85 * 2/ Math.pow(2, zoom))
         }
     }
 
